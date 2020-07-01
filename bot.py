@@ -35,6 +35,20 @@ async def ban(ctx, member : discord.Member, *, reason = "No reason provided"):
     await ctx.send(member.name + " has been banned from the community, because: " +reason)
     await member.ban(reason=reason)
 
-TOKEN = 'put_your_token_here'
+@client.command(aliases=['u'])
+@commands.has_permissions(ban_members = True)
+async def unban(ctx, *, member):
+    banned_users = await ctx.guild.bans()
+    member_name, member_discriminator = member.split('#')
+
+    for ban_entry in banned_users:
+        user = ban_entry.user
+
+        if(user.name, user.discriminator) == (member_name, member_discriminator):
+            await ctx.guild.unban(user)
+            await ctx.send(f'unbanned {user.mention}')
+            return
+
+TOKEN = 'your_secret_token_put_here'
 
 client.run(TOKEN)
