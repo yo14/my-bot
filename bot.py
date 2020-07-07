@@ -1,14 +1,30 @@
 import discord
+import os
 from discord.ext import commands
+from dotenv import load_dotenv
+
+load_dotenv()
+TOKEN = os.getenv('DISCORD_TOKEN')
 
 client = commands.Bot(command_prefix='.')
 
 f = open("rules.txt","r")
 rules = f.readlines()
 
+filtered_words = ["cat","dog"]
+
 @client.event
 async def on_ready():
     print('Bot is ready.')
+
+@client.event
+async def on_message(msg):
+    for word in filtered_words:
+        if word in msg.content:
+            await msg.delete()
+
+    await client.process_commands(msg)
+
 
 @client.command()
 async def hello(ctx):
@@ -35,20 +51,35 @@ async def ban(ctx, member : discord.Member, *, reason = "No reason provided"):
     await ctx.send(member.name + " has been banned from the community, because: " +reason)
     await member.ban(reason=reason)
 
-@client.command(aliases=['u'])
+@client.command(aliases=['ub'])
 @commands.has_permissions(ban_members = True)
 async def unban(ctx, *, member):
     banned_users = await ctx.guild.bans()
-    member_name, member_discriminator = member.split('#')
+    member_name, member_disc = member.split('#')
 
-    for ban_entry in banned_users:
-        user = ban_entry.user
+    for banned_entry in banned_users:
+        user = banned_entry.user
 
-        if(user.name, user.discriminator) == (member_name, member_discriminator):
+        if(user.name, user.discriminator) == (member_name, member_disc):
             await ctx.guild.unban(user)
-            await ctx.send(f'unbanned {user.mention}')
+            await ctx.send(member_name + " has been unbanned!")
             return
 
-TOKEN = 'your_secret_token_put_here'
+        await ctx.send(member+" was not found")
+
+@client.command(aliases=['m'])
+@commands.has_permissions(kick_members=True)
+async def mute(ctx,member : discord.Member):
+    muted_role = ctx.guild.get_role(_PUT_YOUR_MUTED_ID_HERE_)
+    await member.add_roles(muted_role)
+    await ctx.send(member.mention + " has been muted")
+
+
+@client.command(aliases=['um'])
+@commands.has_permissions(kick_members=True)
+async def unmute(ctx, member : discord.Member):
+    muted_role = ctx.guild.get_role(_PUT_YOUR_MUTED_ID_HERE_)
+    await member.remove_roles(muted_role)
+    await ctx.send(member.mention + " has been unmuted")
 
 client.run(TOKEN)
