@@ -30,6 +30,17 @@ async def on_message(msg):
 async def hello(ctx):
     await ctx.send('Hi testing')
 
+@client.event
+async def on_command_error(ctx, error):
+    if isinstance(error,commands.MissingPermissions):
+        await ctx.send("You can't do that ;-;")
+        await ctx.message.delete()
+    elif isinstance(error,commands.MissingRequiredArgument):
+        await ctx.send("Please enter all the required args.")
+        await ctx.message.delete()
+    else:
+        raise error
+
 @client.command(aliases=['rules','point'])
 async def rule(ctx, *, number):
     await ctx.send(rules[int(number) - 1])
@@ -48,7 +59,11 @@ async def kick(ctx, member : discord.Member, *, reason = "No reason provided"):
 @client.command(aliases=['b'])
 @commands.has_permissions(ban_members = True)
 async def ban(ctx, member : discord.Member, *, reason = "No reason provided"):
-    await ctx.send(member.name + " has been banned from the community, because: " +reason)
+    try:
+        await ctx.send(member.name + " has been banned from the community, because: " +reason)
+    except:
+        await ctx.send("The member has their dms closed.")
+
     await member.ban(reason=reason)
 
 @client.command(aliases=['ub'])
@@ -70,7 +85,7 @@ async def unban(ctx, *, member):
 @client.command(aliases=['m'])
 @commands.has_permissions(kick_members=True)
 async def mute(ctx,member : discord.Member):
-    muted_role = ctx.guild.get_role(_PUT_YOUR_MUTED_ID_HERE_)
+    muted_role = ctx.guild.get_role(729812183151804526)
     await member.add_roles(muted_role)
     await ctx.send(member.mention + " has been muted")
 
@@ -78,7 +93,7 @@ async def mute(ctx,member : discord.Member):
 @client.command(aliases=['um'])
 @commands.has_permissions(kick_members=True)
 async def unmute(ctx, member : discord.Member):
-    muted_role = ctx.guild.get_role(_PUT_YOUR_MUTED_ID_HERE_)
+    muted_role = ctx.guild.get_role(729812183151804526)
     await member.remove_roles(muted_role)
     await ctx.send(member.mention + " has been unmuted")
 
